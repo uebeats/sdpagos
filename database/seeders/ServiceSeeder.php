@@ -12,17 +12,15 @@ class ServiceSeeder extends Seeder
         Service::insert([
             [
                 'name' => 'Hosting Básico',
-                'description' => 'Plan de hosting con 10GB de almacenamiento.',
-                'price' => 10.00,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'price' => 15000.00,
+                'billing_cycle' => 'monthly',
+                'description' => 'Hosting básico para sitios web pequeños.'
             ],
             [
-                'name' => 'Soporte Técnico',
-                'description' => 'Soporte técnico para sistemas y servidores.',
-                'price' => 50.00,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'name' => 'Hosting Avanzado',
+                'price' => 200000.00,
+                'billing_cycle' => 'annual',
+                'description' => 'Hosting avanzado para sitios web medianos.'
             ],
         ]);
     }

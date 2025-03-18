@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
+            $table->enum('billing_cycle', ['monthly', 'quarterly', 'biannual', 'annual']);
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

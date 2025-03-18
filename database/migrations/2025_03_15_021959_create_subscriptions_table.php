@@ -15,10 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->constrained()->onDelete('cascade');
-            $table->decimal('amount', 10, 2);
-            $table->enum('billing_cycle', ['monthly', 'quarterly', 'annually']);
+            $table->date('start_date');
             $table->date('next_billing_date');
-            $table->enum('status', ['active', 'cancelled', 'expired'])->default('active');
+            $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending'); // 'pending', 'paid', 'overdue'
             $table->timestamps();
         });
     }

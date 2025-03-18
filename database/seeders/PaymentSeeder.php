@@ -12,25 +12,28 @@ class PaymentSeeder extends Seeder
     {
         Payment::insert([
             [
-                'client_id' => 1,
                 'subscription_id' => 1,
-                'amount' => 10.00,
-                'payment_date' => Carbon::now(),
-                'status' => 'paid',
-                'payment_method' => 'Mercado Pago',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'amount' => 100,
+                'method' => 'transfer',
+                'transaction_id' => '123456',
+                'status' => 'successful',
+                'paid_at' => Carbon::now(),
+                'retry_count' => 0,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ],
             [
-                'client_id' => 2,
                 'subscription_id' => 2,
-                'amount' => 50.00,
-                'payment_date' => Carbon::now(),
-                'status' => 'pending',
-                'payment_method' => 'Tarjeta de crédito',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'amount' => 200,
+                'method' => 'mercadopago',
+                'transaction_id' => '654321',
+                'status' => 'successful',
+                'paid_at' => Carbon::now(),
+                'retry_count' => 0,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ],
+            
         ]);
     }
 }

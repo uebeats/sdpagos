@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('rut')->unique();
             $table->string('email')->unique();
             $table->string('phone')->nullable();
-            $table->string('address')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }
