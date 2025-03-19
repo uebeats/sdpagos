@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('invoices', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->foreignId('subscription_id')->constrained('subscriptions')->onDelete('cascade');
-            $table->decimal('amount', 10, 2);
-            $table->timestamp('payment_date');
-            $table->enum('status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->decimal('total_amount', 10, 2);
+            $table->date('due_date');
+            $table->enum('status', ['unpaid', 'paid', 'overdue'])->default('unpaid');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('invoices');
     }
 };

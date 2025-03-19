@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('service_id')->constrained()->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
+            $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
+            $table->enum('status', ['active', 'suspended', 'cancelled'])->default('active');
             $table->date('start_date');
-            $table->date('next_billing_date');
-            $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending'); // 'pending', 'paid', 'overdue'
+            $table->date('next_payment_date');
             $table->timestamps();
         });
     }

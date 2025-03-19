@@ -1,2 +1,12 @@
 // Tabler
 @import '@tabler/core/dist/css/tabler.min.css';
+
+:root {
+    --tblr-primary: #178B99;
+    --tblr-primary-rgb: 23, 139, 153;
+    --tblr-link-hover-color-rgb: 23, 139, 153;
+    --tblr-link-color-rgb: 23, 139, 153;
+    --tblr-link-hover-color: #178B99;
+    --tblr-bg-surface: #ffffff;
+    --tblr-font-sans-serif: 'Inter Var', -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+}

@@ -2,99 +2,66 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
-use App\Models\Subscription;
 use Illuminate\Http\Request;
-use App\Notifications\PaymentConfirmed;
+use App\Models\Invoice;
+use MercadoPago;
+use Illuminate\Support\Facades\Log;
+use App\Notifications\PaymentReceived;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function payWithMercadoPago(Request $request, $invoiceId)
     {
-        $payments = Payment::with('subscription.client')->latest()->paginate(10);
-        return view('payments.index', compact('payments'));
-        // return response()->json($payments);
+        $invoice = Invoice::findOrFail($invoiceId);
+        MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_ACCESS_TOKEN'));
+
+        // Crear la preferencia de pago
+        $preference = new MercadoPago\Preference();
+        $item = new MercadoPago\Item();
+        $item->title = "Pago de Factura #" . $invoice->id;
+        $item->quantity = 1;
+        $item->currency_id = "CLP";
+        $item->unit_price = (float)$invoice->total_amount;
+
+        $preference->items = [$item];
+        $preference->back_urls = [
+            "success" => route('payment.success', ['invoice' => $invoice->id]),
+            "failure" => route('payment.failed', ['invoice' => $invoice->id]),
+        ];
+        $preference->auto_return = "approved";
+        $preference->save();
+
+        return redirect($preference->init_point);
     }
 
-    public function create()
+    public function paymentSuccess(Request $request, $invoiceId)
     {
-        $subscriptions = Subscription::with('client', 'service')->where('status', 'pending')->get();
-        return view('payments.create', compact('subscriptions'));
+        $invoice = Invoice::findOrFail($invoiceId);
+        $invoice->update(['status' => 'paid']);
+
+        // Enviar notificación al cliente
+        $client = $invoice->client;
+        $client->notify(new PaymentReceived($invoice));
+
+        return redirect()->route('invoices.show', $invoice->id)
+            ->with('success', 'Pago realizado con éxito. Se ha enviado una confirmación por email.');
     }
 
-    public function store(Request $request)
+    public function paymentFailed(Request $request, $invoiceId)
     {
-        $request->validate([
-            'subscription_id' => 'required|exists:subscriptions,id',
-            'amount' => 'required|numeric|min:0',
-            'method' => 'required|in:transfer,mercadopago,webpay,paypal',
-            'transaction_id' => 'nullable|string|max:255',
-            'status' => 'required|in:pending,failed,successful',
-            'paid_at' => 'nullable|date',
-        ]);
-
-        $payment = Payment::create($request->all());
-
-        // Actualizar el estado de la suscripción si el pago fue exitoso
-        if ($payment->status === 'successful') {
-            $subscription = $payment->subscription;
-            $billing_cycle = $subscription->service->billing_cycle;
-    
-            // Determinar la nueva fecha de facturación según el ciclo de pago
-            switch ($billing_cycle) {
-                case 'monthly':
-                    $next_billing_date = now()->addMonth();
-                    break;
-                case 'quarterly':
-                    $next_billing_date = now()->addMonths(3);
-                    break;
-                case 'semi-annually':
-                    $next_billing_date = now()->addMonths(6);
-                    break;
-                case 'annually':
-                    $next_billing_date = now()->addYear();
-                    break;
-                default:
-                    $next_billing_date = now()->addMonth(); // Fallback
-            }
-    
-            $subscription->update([
-                'status' => 'paid',
-                'next_billing_date' => $next_billing_date,
-            ]);
-    
-            // Enviar notificación al cliente
-            $subscription->client->notify(new PaymentConfirmed($payment));
-        }
-
-        return redirect()->route('payments.index')->with('success', 'Pago registrado correctamente.');
+        return redirect()->route('invoices.show', $invoiceId)
+            ->with('error', 'El pago no se completó.');
     }
 
-    public function edit(Payment $payment)
+    public function manualPaymentConfirm(Request $request, $invoiceId)
     {
-        $subscriptions = Subscription::with('client', 'service')->get();
-        return view('payments.edit', compact('payment', 'subscriptions'));
-    }
+        $invoice = Invoice::findOrFail($invoiceId);
+        $invoice->update(['status' => 'paid']);
 
-    public function update(Request $request, Payment $payment)
-    {
-        $request->validate([
-            'subscription_id' => 'required|exists:subscriptions,id',
-            'amount' => 'required|numeric|min:0',
-            'method' => 'required|in:transfer,mercadopago,webpay,paypal',
-            'transaction_id' => 'nullable|string|max:255',
-            'status' => 'required|in:pending,failed,successful',
-            'paid_at' => 'nullable|date',
-        ]);
+        // Enviar notificación al cliente
+        $client = $invoice->client;
+        $client->notify(new PaymentReceived($invoice));
 
-        $payment->update($request->all());
-
-        return redirect()->route('payments.index')->with('success', 'Pago actualizado correctamente.');
-    }
-
-    public function destroy(Payment $payment)
-    {
-        $payment->delete();
-        return redirect()->route('payments.index')->with('success', 'Pago eliminado correctamente.');
+        return back()->with('success', 'Pago confirmado y notificación enviada al cliente.');
     }
 }

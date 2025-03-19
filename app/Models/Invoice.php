@@ -5,11 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment extends Model
+class Invoice extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subscription_id', 'amount', 'payment_date', 'status'];
+    protected $fillable = ['client_id', 'subscription_id', 'total_amount', 'due_date', 'status'];
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
 
     public function subscription()
     {

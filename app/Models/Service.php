@@ -9,12 +9,7 @@ class Service extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'price',
-        'billing_cycle',
-        'description',
-    ];
+    protected $fillable = ['name', 'description', 'price', 'billing_cycle'];
 
     public function subscriptions()
     {
